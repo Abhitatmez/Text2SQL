@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2SQL Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">Text2SQL Assistant</h1>
+            <p class="subtitle">Convert natural language to SQL queries</p>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <main class="main-grid">
+            <!-- Left Column: Input Section -->
+            <section class="input-column">
+                <!-- Natural Language Input -->
+                <div class="glass-card input-card">
+                    <h2>Natural Language Query</h2>
+                    <div class="input-group">
+                        <textarea 
+                            id="queryInput" 
+                            placeholder="💬 Ask me anything about the database...&#10;&#10;🛒 Examples: Show customers from Mumbai • Find expensive products • Top spenders"
+                            rows="3"
+                        ></textarea>
+                        
+                        <!-- Quick Examples -->
+                        <div class="example-queries">
+                            <label class="example-label">🚀 Quick Examples:</label>
+                            <div class="example-buttons">
+                                <button class="btn-example" onclick="setExample('Show me all customers from Mumbai')">Mumbai Customers</button>
+                                <button class="btn-example" onclick="setExample('Find products with price above 1000')">Expensive Products</button>
+                                <button class="btn-example" onclick="setExample('Show top 5 customers by total spending')">Top Spenders</button>
+                                <button class="btn-example" onclick="setExample('What is the average order value?')">Avg Order Value</button>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="generateBtn" class="btn btn-primary">
+                                <span class="btn-text">Generate SQL</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <div class="spinner"></div>
+                                    Generating...
+                                </span>
+                            </button>
+                            <button id="queryBtn" class="btn btn-primary">
+                                <span class="btn-text">Generate & Execute</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <div class="spinner"></div>
+                                    Processing...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SQL Query Input -->
+                <div class="glass-card input-card">
+                    <h2>Manual SQL Execution</h2>
+                    <div class="input-group">
+                        <textarea 
+                            id="sqlInput" 
+                            placeholder="✏️ Write SQL directly or use generated SQL...&#10;Example: SELECT * FROM customers WHERE city = 'Mumbai'"
+                            rows="2"
+                        ></textarea>
+                        <div class="button-group">
+                            <button id="executeBtn" class="btn btn-secondary">
+                                <span class="btn-text">Execute SQL</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <div class="spinner"></div>
+                                    Executing...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Schema (Compact) -->
+                <div class="glass-card schema-card">
+                    <h2>Database Schema</h2>
+                    <div class="schema-info">
+                        <div class="schema-grid">
+                            <div class="schema-item"><strong>customers</strong><br><small>id, name, email, city</small></div>
+                            <div class="schema-item"><strong>products</strong><br><small>id, name, price, category</small></div>
+                            <div class="schema-item"><strong>orders</strong><br><small>id, customer_id, order_date, total</small></div>
+                            <div class="schema-item"><strong>order_items</strong><br><small>order_id, product_id, quantity</small></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Results Section -->
+            <section class="results-column">
+                <!-- SQL Generation Results -->
+                <div id="sqlResults" class="glass-card results-card" style="display: none;">
+                    <h2>Generated SQL</h2>
+                    <div class="sql-container">
+                        <div class="sql-actions">
+                            <button id="copySqlBtn" class="btn btn-small">📋 Copy</button>
+                            <button id="copyToSqlInputBtn" class="btn btn-small">📝 Use</button>
+                        </div>
+                        <pre id="sqlQuery" class="sql-code"></pre>
+                    </div>
+                    <div class="metadata">
+                        <div class="meta-item">
+                            <span class="meta-label">Confidence:</span>
+                            <span id="confidence" class="meta-value"></span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Est. Rows:</span>
+                            <span id="estimatedRows" class="meta-value"></span>
+                        </div>
+                    </div>
+                    <div class="explanation">
+                        <h3>Explanation</h3>
+                        <p id="explanation"></p>
+                    </div>
+                </div>
+
+                <!-- Query Results -->
+                <div id="queryResults" class="glass-card results-card" style="display: none;">
+                    <h2>Query Results</h2>
+                    <div class="results-info">
+                        <span id="rowCount" class="row-count"></span>
+                        <span id="executionTime" class="execution-time"></span>
+                    </div>
+                    <div class="table-container">
+                        <table id="resultsTable">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="errorDisplay" class="glass-card error-card" style="display: none;">
+                    <h2>Error</h2>
+                    <p id="errorMessage"></p>
+                </div>
+
+                <!-- Placeholder when no results -->
+                <div id="resultsPlaceholder" class="glass-card results-card">
+                    <div class="placeholder-content">
+                        <div class="placeholder-icon">🔍</div>
+                        <h3>Ready to Query</h3>
+                        <p>Enter a natural language query or SQL statement to see results here.</p>
+                        <div class="placeholder-tips">
+                            <strong>Try these examples:</strong><br>
+                            • "Show all customers from Mumbai"<br>
+                            • "Find products above ₹1000"<br>
+                            • "Top 5 customers by spending"
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by Gemini AI • FastAPI • SQLite</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 
