@@ -1,5 +1,7 @@
 # 🧠 Text2SQL Assistant with Executable Output
 
+![Text2SQL](banner.jpg)
+
 A GenAI-powered application that converts natural language queries to SQL and executes them against a real database, returning actionable results.
 
 ## 📋 Table of Contents
